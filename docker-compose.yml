@@ -1,0 +1,38 @@
+version: "3.6"
+
+services:
+
+  database:
+    image: bearpass/database
+    container_name: bearpass_database
+    networks:
+      - bearpass
+
+  app:
+    image: bearpass/app
+    container_name: bearpass_app
+    depends_on:
+      - database
+    networks:
+      - bearpass
+
+  nginx:
+    image: bearpass/nginx
+    container_name: bearpass_nginx
+    depends_on:
+      - app
+    networks:
+      - bearpass
+
+  cron:
+    image: bearpass/cron
+    container_name: bearpass_cron
+    depends_on:
+      - database
+      - app
+    networks:
+      - bearpass
+
+networks:
+  bearpass:
+    driver: bridge

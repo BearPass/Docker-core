@@ -1,0 +1,54 @@
+version: "3.6"
+
+services:
+
+  database:
+    restart: unless-stopped
+    volumes:
+      - ../database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-bear_pass}
+      - POSTGRES_USER=${POSTGRES_USER:-bear_pass}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+
+  app:
+    restart: unless-stopped
+    volumes:
+      - ../app:/var/www/bearpass
+    environment:
+      - DB_HOST=database
+      - DB_DATABASE=${POSTGRES_DB:-bear_pass}
+      - DB_USERNAME=${POSTGRES_USER:-bear_pass}
+      - DB_PASSWORD=${DATABASE_PASSWORD}
+      - APP_URL=${BEARPASS_FULL_URL}
+      - USER_ID=${USER_ID}
+      - GROUP_ID=${GROUP_ID}
+
+  nginx:
+    restart: unless-stopped
+    volumes:
+      - ../logs/nginx:/logs/nginx
+      - ../app:/var/www/bearpass
+      - ./nginx/conf/conf.d:/etc/nginx/conf.d
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    ports:
+      - ${BEARPASS_PORT:-80}:80
+      - ${BEARPASS_SSL_PORT:-443}:443
+    environment:
+      - SITE_URL=${BEARPASS_URL}
+      - USER_ID=${USER_ID}
+      - GROUP_ID=${GROUP_ID}
+
+  cron:
+    restart: unless-stopped
+    volumes:
+      - ../app:/var/www/bearpass
+    environment:
+      - DB_HOST=database
+      - DB_DATABASE=${POSTGRES_DB:-bear_pass}
+      - DB_USERNAME=${POSTGRES_USER:-bear_pass}
+      - DB_PASSWORD=${DATABASE_PASSWORD}
+      - APP_URL=${BEARPASS_FULL_URL}
+      - USER_ID=${USER_ID}
+      - GROUP_ID=${GROUP_ID}
