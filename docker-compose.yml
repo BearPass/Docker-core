@@ -9,7 +9,7 @@ services:
       - bearpass
 
   app:
-    image: bearpass/app:8.0
+    image: bearpass/app:8.2
     container_name: bearpass_app
     depends_on:
       - database
