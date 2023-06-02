@@ -35,7 +35,8 @@ then
     cp .env.example .env && \
     php artisan key:generate && \
     php artisan encryption-key:generate && \
-    php artisan migrate --seed --no-interaction --force
+    php artisan migrate --seed --no-interaction --force && \
+    php artisan optimize:clear
 fi
 
 chown -R $USERNAME:$GROUPNAME /var/www/bearpass
