@@ -41,7 +41,7 @@ RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg && \
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 COPY conf/php/php-fpm.conf $PHP_INI_DIR/php-fpm.conf
-COPY conf/php/php.ini $PHP_INI_DIR/
+COPY conf/php/php.ini $PHP_INI_DIR/php.ini
 COPY init.sh /usr/bin/init
 
 RUN chmod +x /usr/bin/init
