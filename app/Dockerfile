@@ -1,4 +1,4 @@
-FROM php:8.2.2-fpm
+FROM php:8.2-fpm
 
 MAINTAINER info@bearpass.ru
 

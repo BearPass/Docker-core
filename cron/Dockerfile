@@ -1,4 +1,4 @@
-FROM php:8.2.2-cli-alpine
+FROM php:8.2-cli-alpine
 MAINTAINER info@bearpass.ru
 
 RUN set -ex && \
