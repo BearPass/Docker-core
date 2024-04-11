@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Initializing"
+
 USERNAME="www-data"
 GROUPNAME="www-data"
 
@@ -24,6 +26,7 @@ mkdir -p /var/www/bearpass
 
 if [ ! -d "/var/www/bearpass/vendor" ]
 then
+    echo "Downloading vendor deps..."
     cd /var/www/bearpass && \
     composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist && \
     composer dump-autoload
@@ -31,6 +34,7 @@ fi
 
 if [ ! -f "/var/www/bearpass/.env" ]
 then
+    echo "Configuring, initialising / updating database..."
     cd /var/www/bearpass && \
     cp .env.example .env && \
     php artisan key:generate && \
@@ -40,5 +44,7 @@ then
 fi
 
 chown -R $USERNAME:$GROUPNAME /var/www/bearpass
+
+echo "Starting"
 
 exec "$@"
