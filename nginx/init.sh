@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 USERNAME="www-data"
 GROUPNAME="www-data"
 

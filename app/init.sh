@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "Initializing"
 
 USERNAME="www-data"
@@ -24,12 +26,14 @@ mkhomedir_helper $USERNAME
 
 mkdir -p /var/www/bearpass
 
-if [ ! -d "/var/www/bearpass/vendor" ]
-then
-    echo "Downloading vendor deps..."
+vendor_deps_status=$(composer install --no-dev --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --dry-run 2>&1 | grep "Nothing to install, update or remove")
+if [[ -z $vendor_deps_status ]]; then
+    echo "Downloading / updating vendor deps..."
     cd /var/www/bearpass && \
     composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist && \
     composer dump-autoload
+else
+    echo "Vendor deps are up-to-date"
 fi
 
 if [ ! -f "/var/www/bearpass/.env" ]
