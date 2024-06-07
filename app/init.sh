@@ -26,20 +26,22 @@ mkhomedir_helper $USERNAME
 
 mkdir -p /var/www/bearpass
 
-vendor_deps_status=$(composer install --no-dev --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --dry-run 2>&1 | grep "Nothing to install, update or remove")
-if [[ -z $vendor_deps_status ]]; then
-    echo "Downloading / updating vendor deps..."
-    cd /var/www/bearpass && \
-    composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist && \
-    composer dump-autoload
-else
+cd /var/www/bearpass
+
+vendor_deps_status=$(composer install --no-dev --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --dry-run 2>&1)
+
+if echo "$vendor_deps_status" | grep -q "Nothing to install, update or remove"; then
     echo "Vendor deps are up-to-date"
+else
+    echo "Downloading / updating vendor deps..."
+        cd /var/www/bearpass && \
+        composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist && \
+        composer dump-autoload
 fi
 
 if [ ! -f "/var/www/bearpass/.env" ]
 then
     echo "Configuring, initialising / updating database..."
-    cd /var/www/bearpass && \
     cp .env.example .env && \
     php artisan key:generate && \
     php artisan encryption-key:generate && \
