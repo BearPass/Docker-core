@@ -7,7 +7,7 @@ services:
       - bearpass
 
   app:
-    image: bearpass/app:8.3
+    image: bearpass/app:8.4
     container_name: bearpass_app
     depends_on:
       - database
@@ -23,7 +23,7 @@ services:
       - bearpass
 
   cron:
-    image: bearpass/cron:8.3
+    image: bearpass/cron:8.4
     container_name: bearpass_cron
     depends_on:
       - database

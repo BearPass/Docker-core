@@ -1,7 +1,5 @@
 FROM nginx:alpine
 
-MAINTAINER info@bearpass.ru
-
 RUN rm /etc/nginx/conf.d/default.conf
 
 COPY init.sh /docker-entrypoint.d/

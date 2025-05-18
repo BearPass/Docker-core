@@ -1,5 +1,4 @@
-FROM php:8.3-cli-alpine
-MAINTAINER info@bearpass.ru
+FROM php:8.4-cli-alpine
 
 RUN set -ex && \
     apk --no-cache --update add \
