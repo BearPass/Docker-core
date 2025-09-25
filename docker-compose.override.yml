@@ -14,7 +14,7 @@ services:
     volumes:
       - ../app:/var/www/bearpass
     environment:
-      - DB_HOST=database
+      - DB_HOST=${POSTGRES_HOST:-database}
       - DB_DATABASE=${POSTGRES_DB:-bear_pass}
       - DB_USERNAME=${POSTGRES_USER:-bear_pass}
       - DB_PASSWORD=${DATABASE_PASSWORD}
@@ -43,7 +43,7 @@ services:
     volumes:
       - ../app:/var/www/bearpass
     environment:
-      - DB_HOST=database
+      - DB_HOST=${POSTGRES_HOST:-database}
       - DB_DATABASE=${POSTGRES_DB:-bear_pass}
       - DB_USERNAME=${POSTGRES_USER:-bear_pass}
       - DB_PASSWORD=${DATABASE_PASSWORD}

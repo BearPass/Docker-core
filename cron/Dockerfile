@@ -13,7 +13,6 @@ RUN set -ex && \
         curl-dev \
         icu-dev \
         postgresql-dev \
-        ldb-dev \
         libldap \
         openldap-dev \
         bash
