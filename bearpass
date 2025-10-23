@@ -18,6 +18,17 @@ run_in_container() {
     $COMPOSE_CMD exec -u $USER $CONTAINER sh -c "cd $WORKDIR && $command"
 }
 
+if [ "$1" = "artisan" ]; then
+    shift  # Remove "artisan" from args
+    if [ $# -eq 0 ]; then
+        echo "Error: Please specify an artisan command"
+        echo "Example: ./bearpass artisan migrate"
+        exit 1
+    fi
+    run_in_container "php artisan $*"
+    exit 0
+fi
+
 case "$1" in
     "start")
         $COMPOSE_CMD up -d
