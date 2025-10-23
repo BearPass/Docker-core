@@ -33,7 +33,8 @@ RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg && \
     xml \
     bcmath \
     ldap \
-    opcache
+    opcache \
+    sockets
 
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer

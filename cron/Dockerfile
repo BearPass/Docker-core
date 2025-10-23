@@ -15,7 +15,8 @@ RUN set -ex && \
         postgresql-dev \
         libldap \
         openldap-dev \
-        bash
+        bash \
+        linux-headers
 
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg && \
     docker-php-ext-install \
@@ -27,7 +28,8 @@ RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg && \
     zip \
     xml \
     ldap \
-    bcmath
+    bcmath \
+    sockets
 
 COPY ./conf/cron/crontab /var/spool/cron/crontabs/www-data
 COPY ./conf/php/php.ini $PHP_INI_DIR/
