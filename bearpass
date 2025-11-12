@@ -19,13 +19,20 @@ run_in_container() {
 }
 
 if [ "$1" = "artisan" ]; then
-    shift  # Remove "artisan" from args
+    shift
     if [ $# -eq 0 ]; then
         echo "Error: Please specify an artisan command"
         echo "Example: ./bearpass artisan migrate"
         exit 1
     fi
-    run_in_container "php artisan $*"
+
+    artisan_args=""
+    while [ $# -gt 0 ]; do
+        artisan_args="$artisan_args \"$1\""
+        shift
+    done
+
+    run_in_container "php artisan $artisan_args"
     exit 0
 fi
 
@@ -52,13 +59,21 @@ case "$1" in
         run_in_container "php artisan optimize:clear"
         ;;
     "make:user")
-            run_in_container "php artisan make:user"
-            ;;
+        shift
+
+        local make_user_args=""
+        while [ $# -gt 0 ]; do
+            make_user_args="$make_user_args \"$1\""
+            shift
+        done
+
+        run_in_container "php artisan make:user $make_user_args"
+        ;;
     "main:health-check")
         run_in_container "php artisan main:health-check"
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|update|migrate|cache-clear|make:user|main:health-check}"
+        echo "Usage: $0 {start|stop|restart|update|migrate|cache-clear|make:user|main:health-check|artisan}"
         echo "  start                - Запуск контейнеров"
         echo "  stop                 - Остановка контейнеров"
         echo "  restart              - Перезапуск контейнеров"
@@ -67,6 +82,7 @@ case "$1" in
         echo "  cache-clear          - Очистка кеша"
         echo "  make:user            - Создание администратора"
         echo "  main:health-check    - Проверка работоспособности приложения"
+        echo "  artisan              - Запуск artisan команды"
         exit 1
         ;;
 esac
