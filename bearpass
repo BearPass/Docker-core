@@ -1,0 +1,88 @@
+#!/bin/bash
+
+if command -v docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    echo "Error: neither docker-compose nor docker compose is available"
+    exit 1
+fi
+
+CONTAINER="app"
+WORKDIR="/var/www/bearpass"
+USER="www-data"
+
+run_in_container() {
+    local command="$1"
+    $COMPOSE_CMD exec -u $USER $CONTAINER sh -c "cd $WORKDIR && $command"
+}
+
+if [ "$1" = "artisan" ]; then
+    shift
+    if [ $# -eq 0 ]; then
+        echo "Error: Please specify an artisan command"
+        echo "Example: ./bearpass artisan migrate"
+        exit 1
+    fi
+
+    artisan_args=""
+    while [ $# -gt 0 ]; do
+        artisan_args="$artisan_args \"$1\""
+        shift
+    done
+
+    run_in_container "php artisan $artisan_args"
+    exit 0
+fi
+
+case "$1" in
+    "start")
+        $COMPOSE_CMD up -d
+        ;;
+    "stop")
+        $COMPOSE_CMD down
+        ;;
+    "restart")
+        $COMPOSE_CMD restart
+        ;;
+    "update")
+        run_in_container "composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+                          composer dump-autoload
+                          php artisan migrate --seed --no-interaction --force
+                          php artisan optimize:clear"
+        ;;
+    "migrate")
+        run_in_container "php artisan migrate --seed --no-interaction --force"
+        ;;
+    "cache-clear")
+        run_in_container "php artisan optimize:clear"
+        ;;
+    "make:user")
+        shift
+
+        local make_user_args=""
+        while [ $# -gt 0 ]; do
+            make_user_args="$make_user_args \"$1\""
+            shift
+        done
+
+        run_in_container "php artisan make:user $make_user_args"
+        ;;
+    "main:health-check")
+        run_in_container "php artisan main:health-check"
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|update|migrate|cache-clear|make:user|main:health-check|artisan}"
+        echo "  start                - Запуск контейнеров"
+        echo "  stop                 - Остановка контейнеров"
+        echo "  restart              - Перезапуск контейнеров"
+        echo "  update               - Обновление пакетов, запуск миграций, очистка кеша"
+        echo "  migrate              - Запуск миграций"
+        echo "  cache-clear          - Очистка кеша"
+        echo "  make:user            - Создание администратора"
+        echo "  main:health-check    - Проверка работоспособности приложения"
+        echo "  artisan              - Запуск artisan команды"
+        exit 1
+        ;;
+esac
