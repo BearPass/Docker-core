@@ -2,7 +2,7 @@
 
 if command -v docker compose version &> /dev/null; then
     COMPOSE_CMD="docker compose"
-elif docker-compose &> /dev/null; then
+elif command -v docker-compose &> /dev/null; then
     COMPOSE_CMD="docker-compose"
 else
     echo "Error: neither docker-compose nor docker compose is available"
@@ -15,74 +15,116 @@ USER="www-data"
 
 run_in_container() {
     local command="$1"
-    $COMPOSE_CMD exec -u $USER $CONTAINER sh -c "cd $WORKDIR && $command"
+    $COMPOSE_CMD exec -u "$USER" "$CONTAINER" sh -c "cd \"$WORKDIR\" && $command"
 }
 
-if [ "$1" = "artisan" ]; then
+cmd_start() {
+    $COMPOSE_CMD up -d
+}
+
+cmd_stop() {
+    $COMPOSE_CMD down
+}
+
+cmd_restart() {
+    $COMPOSE_CMD restart
+}
+
+cmd_update() {
+    run_in_container "
+        composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist &&
+        composer dump-autoload &&
+        php artisan migrate --seed --no-interaction --force &&
+        php artisan optimize:clear
+    "
+}
+
+cmd_migrate() {
+    run_in_container "php artisan migrate --seed --no-interaction --force"
+}
+
+cmd_cache_clear() {
+    run_in_container "php artisan optimize:clear"
+}
+
+cmd_health() {
+    run_in_container "php artisan main:health-check"
+}
+
+cmd_make_user() {
+    shift
+    local args=""
+    for arg in "$@"; do
+        arg="${arg//\"/\\\"}"
+        args="$args \"$arg\""
+    done
+    run_in_container "php artisan make:user $args"
+}
+
+cmd_artisan() {
     shift
     if [ $# -eq 0 ]; then
-        echo "Error: Please specify an artisan command"
-        echo "Example: ./bearpass artisan migrate"
+        echo "Error: укажите artisan-команду"
+        echo "Пример: ./bearpass artisan migrate"
         exit 1
     fi
 
-    artisan_args=""
-    while [ $# -gt 0 ]; do
-        artisan_args="$artisan_args \"$1\""
-        shift
+    local args=""
+    for arg in "$@"; do
+        arg="${arg//\"/\\\"}"
+        args="$args \"$arg\""
     done
 
-    run_in_container "php artisan $artisan_args"
-    exit 0
-fi
+    run_in_container "php artisan $args"
+}
 
 case "$1" in
-    "start")
-        $COMPOSE_CMD up -d
+    start)
+        cmd_start
         ;;
-    "stop")
-        $COMPOSE_CMD down
+    stop)
+        cmd_stop
         ;;
-    "restart")
-        $COMPOSE_CMD restart
+    restart)
+        cmd_restart
         ;;
-    "update")
-        run_in_container "composer install --no-dev -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-                          composer dump-autoload
-                          php artisan migrate --seed --no-interaction --force
-                          php artisan optimize:clear"
+    update)
+        cmd_update
         ;;
-    "migrate")
-        run_in_container "php artisan migrate --seed --no-interaction --force"
+    migrate)
+        cmd_migrate
         ;;
-    "cache-clear")
-        run_in_container "php artisan optimize:clear"
+    cache-clear)
+        cmd_cache_clear
         ;;
-    "make:user")
-        shift
-
-        local make_user_args=""
-        while [ $# -gt 0 ]; do
-            make_user_args="$make_user_args \"$1\""
-            shift
-        done
-
-        run_in_container "php artisan make:user $make_user_args"
+    make:user)
+        cmd_make_user "$@"
         ;;
-    "main:health-check")
-        run_in_container "php artisan main:health-check"
+    main:health-check)
+        cmd_health
+        ;;
+    artisan)
+        cmd_artisan "$@"
+        ;;
+    ""|-h|--help|help)
+        echo "Использование: $0 {start|stop|restart|update|migrate|cache-clear|make:user|main:health-check|artisan}"
+        echo
+        echo "  start             — запуск контейнеров"
+        echo "  stop              — остановка контейнеров"
+        echo "  restart           — перезапуск контейнеров"
+        echo "  update            — Обновление пакетов, запуск миграций, очистка кеша"
+        echo "  migrate           — запуск миграций"
+        echo "  cache-clear       — Очистка кеша"
+        echo "  make:user         — создание администратора"
+        echo "  main:health-check — проверка работоспособности приложения"
+        echo "  artisan           — запуск artisan команды"
+        exit 0
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|update|migrate|cache-clear|make:user|main:health-check|artisan}"
-        echo "  start                - Запуск контейнеров"
-        echo "  stop                 - Остановка контейнеров"
-        echo "  restart              - Перезапуск контейнеров"
-        echo "  update               - Обновление пакетов, запуск миграций, очистка кеша"
-        echo "  migrate              - Запуск миграций"
-        echo "  cache-clear          - Очистка кеша"
-        echo "  make:user            - Создание администратора"
-        echo "  main:health-check    - Проверка работоспособности приложения"
-        echo "  artisan              - Запуск artisan команды"
+        echo "Неизвестная команда: $1"
+        echo "Используйте $0 --help для справки"
         exit 1
         ;;
 esac
+
+exit 0
